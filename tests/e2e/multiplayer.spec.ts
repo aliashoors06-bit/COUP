@@ -37,15 +37,14 @@ async function step(p: Player, idx: number): Promise<boolean> {
   const page = p.page;
   if (await page.getByRole('button', { name: /^(Rematch|Waiting)/ }).isVisible()) return true;
 
-  const lose = page.getByRole('dialog', { name: 'Lose one influence' });
-  if (await lose.isVisible()) {
-    await click(lose.getByRole('button').first());
+  const loseCard = page.locator('button[aria-label^="Reveal and lose"]');
+  if (await loseCard.first().isVisible()) {
+    await click(loseCard.first(), 2000);
     return false;
   }
-  const ex = page.getByRole('dialog', { name: 'Ambassador exchange' });
+  const ex = page.getByRole('group', { name: /Ambassador exchange/ });
   if (await ex.isVisible()) {
-    await click(ex.getByRole('button', { name: 'Keep mine' }));
-    await click(ex.getByRole('button', { name: /Confirm/ }));
+    await click(ex.getByRole('button', { name: 'Keep mine' }), 2000);
     return false;
   }
   const decision = page.getByRole('group', { name: 'Your decision' });
@@ -66,7 +65,7 @@ async function step(p: Player, idx: number): Promise<boolean> {
       await click(concede);
       return false;
     }
-    await click(decision.getByRole('button', { name: /^(Pass|Allow|Accept)/ }));
+    await click(decision.getByRole('button', { name: 'Pass' }));
     return false;
   }
   const toolbar = page.getByRole('toolbar', { name: 'Actions' });
@@ -74,8 +73,8 @@ async function step(p: Player, idx: number): Promise<boolean> {
     const coup = toolbar.getByRole('button', { name: /^Coup/ });
     if (await enabled(coup)) {
       await click(coup, 3000);
-      await click(page.locator('button[aria-label*="Select as target"]').first(), 3000);
-      await click(page.getByRole('dialog').getByRole('button', { name: 'Confirm' }), 3000);
+      await click(page.locator('button[aria-label^="Target "]').first(), 3000);
+      await click(page.getByRole('button', { name: 'Launch Coup' }), 3000);
     } else {
       await click(toolbar.getByRole('button', { name: /^Tax/ }));
     }
@@ -128,16 +127,18 @@ test('six players create a room, play a complete match through the UI, and remat
   await expect(start).toBeEnabled();
   await start.click();
 
-  for (const p of players) await expect(p.page.getByRole('region', { name: 'Your hand' })).toBeVisible();
+  for (const p of players) await expect(p.page.getByRole('region', { name: 'Game table' })).toBeVisible();
 
   // ── Refresh mid-game: the session token restores the seat and private hand
   const refresher = players[3]!.page;
-  const handBefore = await refresher.getByRole('region', { name: 'Your hand' }).locator('[aria-label]').allInnerTexts();
+  const myCards = refresher.locator('button[aria-label$="show abilities"]');
+  await expect(myCards).toHaveCount(2);
+  const handBefore = await myCards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
   await refresher.reload();
-  await expect(refresher.getByRole('region', { name: 'Your hand' })).toBeVisible();
-  const cardsAfter = refresher.getByRole('region', { name: 'Your hand' }).locator('[aria-label$="(revealed, lost)"], [aria-label]');
-  await expect(cardsAfter.first()).toBeVisible();
-  expect(handBefore.length).toBeGreaterThan(0);
+  await expect(refresher.getByRole('region', { name: 'Game table' })).toBeVisible();
+  await expect(myCards).toHaveCount(2);
+  // Same private hand after the refresh (restored from the session token).
+  expect(await myCards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(handBefore);
 
   // ── Autopilot every seat until somebody wins
   const deadline = Date.now() + 240_000;
@@ -160,7 +161,9 @@ test('six players create a room, play a complete match through the UI, and remat
 
   // ── Rematch with the same six players
   for (const p of players) await p.page.getByRole('button', { name: /^Rematch/ }).click();
-  for (const p of players) await expect(p.page.getByText(/Turn 1\b/)).toBeVisible();
+  for (const p of players) await expect(p.page.getByRole('button', { name: /^Rematch|^Waiting/ })).toHaveCount(0);
+  await expect(host.getByText(/Turn 1\b/)).toBeVisible();
+  for (const p of players) await expect(p.page.locator('button[aria-label$="show abilities"]')).toHaveCount(2);
   await expect(host.getByRole('button', { name: /^Rematch/ })).toHaveCount(0);
 });
 
@@ -170,7 +173,8 @@ test('practice mode against five bots', async ({ page }) => {
   await page.getByPlaceholder('e.g. Vivienne').fill('Solo');
   await page.getByRole('radio', { name: 'Hard' }).click();
   await page.getByRole('button', { name: 'Begin Practice' }).click();
-  await expect(page.getByRole('region', { name: 'Your hand' })).toBeVisible();
-  await expect(page.getByText('· bot').or(page.getByText('bot', { exact: true })).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Game table' })).toBeVisible();
+  await expect(page.getByText(/^bot$/i).first()).toBeVisible();
+  await expect(page.getByRole('toolbar', { name: 'Actions' }).or(page.getByText(/is choosing an action|Waiting for other players/))).toBeVisible();
   await page.screenshot({ path: 'test-results/practice.png' });
 });

@@ -83,6 +83,16 @@ tests/e2e/              Playwright multiplayer suite
 
 **Animations are cosmetic.** The engine emits public events (`coins`, `challenge`, `reveal`, `coup`…), which drive the effects layer and sounds. The rendered state always comes from the latest server snapshot.
 
+## Table UI and animations
+
+The game screen is a casino-style oval table drawn on a fixed "stage" (1600×830 in landscape, 900×1320 in portrait) that scales to fit the screen. That way every player sees the same seating geometry from their own seat, with no scrolling. You always sit at the bottom centre, with your two cards large in front of you. Opponents sit clockwise around the felt, each with face-down cards, a physical coin stack and a name plate.
+
+- **Physical coins:** every transfer the server confirms (Income, Foreign Aid, Tax, Steal, Assassinate, Coup, refunds, coins returned on exile) throws the actual number of coins along an arc between the real stack and treasury positions, with staggered timing, spin, a landing bounce and metallic sounds.
+- **No drift:** displayed balances are derived as `server value + coins not yet launched from here − coins not yet landed here`, so they always converge on the authoritative number. Coins never vanish or double, and animations never change game state.
+- **Cards:** the opening deal goes round the table one card at a time from the Court Deck. A proven card is shown, returned to the deck and replaced. Exchanges draw and return cards visibly. Lost influence flips face-up and stays on the table desaturated and cracked.
+- **No replays:** animations only run for events attached to a live server update. A refresh or reconnect restores the table instantly without replaying old transactions.
+- **Inline controls:** the action bar sits under your cards. Targeted actions highlight eligible opponents on the felt. Coup and Assassinate ask for an inline confirmation. Challenges, blocks and proofs appear as a compact strip with a countdown. To lose influence you tap one of your own cards, and Ambassador exchanges happen on the felt.
+
 ## Rules clarifications (deterministic digital rulings)
 
 0. **Table size:** 2–6 players. The host can start once at least two players are connected and ready. Practice mode takes 1–5 bots. The standard rules apply at every size; the deck always holds 15 cards (3 per character), so the Court Deck holds 15 − 2 × players.

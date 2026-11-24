@@ -40,7 +40,7 @@ export function GameOver({ game, room, meId }: { game: PublicGameState; room: Ro
   ];
 
   return (
-    <motion.div className="fixed inset-0 z-[60] overflow-y-auto bg-black/75 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+    <motion.div className="fixed inset-0 z-[60] overflow-y-auto bg-black/55 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
       <Particles count={120} color="220,224,232" burst />
       <div className="relative mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center gap-5 px-4 py-8">
         <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.4, type: 'spring' }} className="text-center">
