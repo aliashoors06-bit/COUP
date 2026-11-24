@@ -43,6 +43,8 @@ npm run build
 PORT=8080 NODE_ENV=production node dist-server/server/index.js
 ```
 
+**Render:** create a *Web Service* (not a Static Site), or use the included `render.yaml` Blueprint. Use the build command `npm install && npm run build` and the start command `npm start`. Build tools (Vite, TypeScript, Tailwind) are regular dependencies, so the build also works when the host sets `NODE_ENV=production`.
+
 One Node process serves the static client, the WebSocket endpoint and `/healthz`. Deployment notes:
 
 - **WebSockets must be allowed** by your proxy or host. Render, Railway, Fly.io and any VPS behind nginx all work. For nginx, pass the `Upgrade` and `Connection` headers on `/socket.io/`.
