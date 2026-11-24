@@ -2,7 +2,7 @@ import { randomBytes, randomInt } from 'node:crypto';
 import type { Server, Socket } from 'socket.io';
 import { CoupEngine } from '../shared/engine.js';
 import { BotBrain } from '../shared/bot.js';
-import { AVATARS, DEFAULT_TIMERS, PLAYER_COUNT, TOTAL_CARDS, TOTAL_COINS, type Avatar, type Difficulty } from '../shared/constants.js';
+import { AVATARS, DEFAULT_TIMERS, MIN_PLAYERS, PLAYER_COUNT, TOTAL_CARDS, TOTAL_COINS, type Avatar, type Difficulty } from '../shared/constants.js';
 import {
   AvatarSchema,
   ChatSchema,
@@ -187,7 +187,7 @@ export class RoomManager {
       room.hostId = seat.id;
       seat.ready = true;
       const names = [...BOT_NAMES].sort(() => randomInt(3) - 1);
-      for (let i = 0; i < PLAYER_COUNT - 1; i++) {
+      for (let i = 0; i < (p.bots ?? PLAYER_COUNT - 1); i++) {
         room.seats.push({
           id: newId(),
           token: newToken(),
@@ -264,7 +264,7 @@ export class RoomManager {
       if (room.hostId !== seat.id) return ack({ ok: false, error: 'Only the host can start the match' });
       if (room.status !== 'lobby') return ack({ ok: false, error: 'The match has already started' });
       const seats = this.activeSeats(room);
-      if (seats.length !== PLAYER_COUNT) return ack({ ok: false, error: 'COUP needs exactly six players' });
+      if (seats.length < MIN_PLAYERS) return ack({ ok: false, error: `COUP needs at least ${MIN_PLAYERS} players` });
       if (!seats.every((s) => s.connected && s.ready)) return ack({ ok: false, error: 'Every player must be connected and ready' });
       ack({ ok: true });
       this.startGame(room);
@@ -297,7 +297,7 @@ export class RoomManager {
       const ctx = this.ctx(socket);
       if (!ctx || ctx.room.status !== 'finished') return ack({ ok: false, error: 'The match is not over' });
       const { room, seat } = ctx;
-      if (this.activeSeats(room).length !== PLAYER_COUNT || room.seats.some((s) => s.left))
+      if (this.activeSeats(room).length < MIN_PLAYERS || room.seats.some((s) => s.left))
         return ack({ ok: false, error: 'Someone left — return to the lobby to fill the table' });
       seat.rematchVote = p.ready;
       ack({ ok: true });

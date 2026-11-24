@@ -59,7 +59,7 @@ export function ActionPanel({
                 )}
                 style={{ background: `linear-gradient(180deg, ${ACTION_COLOR[a]}ee, #12141c 92%)` }}
               >
-                <span className={cls('font-display font-bold uppercase leading-tight tracking-[0.08em]', compact ? 'text-[11px]' : 'text-[13px]')}>{m.label}</span>
+                <span className={cls('w-full break-words font-display font-bold uppercase leading-tight', compact ? 'text-[11px] tracking-[0.04em]' : 'text-[12px] tracking-[0.02em]')}>{m.label}</span>
                 <span className="mt-0.5 flex items-center gap-0.5 text-[11px] font-bold text-ivory/90">
                   <CoinIcon size={12} />
                   {costText(a)}

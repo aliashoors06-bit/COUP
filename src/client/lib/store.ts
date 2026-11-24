@@ -39,7 +39,7 @@ interface AppStore {
   dismissToast: (id: string) => void;
   createRoom: (name: string, avatar: string) => Promise<Ack>;
   joinRoom: (name: string, avatar: string, code: string) => Promise<Ack>;
-  startPractice: (name: string, avatar: string, difficulty: string) => Promise<Ack>;
+  startPractice: (name: string, avatar: string, difficulty: string, bots: number) => Promise<Ack>;
   leaveRoom: () => Promise<void>;
   send: (command: GameCommand) => Promise<Ack>;
   toggleMute: (playerId: string) => void;
@@ -87,9 +87,9 @@ export const useStore = create<AppStore>((set, get) => ({
     if (res.ok) adoptSession(res);
     return res;
   },
-  async startPractice(name, avatar, difficulty) {
+  async startPractice(name, avatar, difficulty, bots) {
     set({ busy: true });
-    const res = await request('practice:create', { name, avatar, difficulty });
+    const res = await request('practice:create', { name, avatar, difficulty, bots });
     set({ busy: false });
     if (res.ok) adoptSession(res, 'game');
     return res;

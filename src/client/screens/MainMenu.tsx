@@ -99,7 +99,7 @@ export function MainMenu() {
           ))}
         </nav>
       </div>
-      <footer className="relative z-10 pb-4 text-center text-[11px] tracking-widest text-ivory/40">SIX PLAYERS · PRIVATE ROOMS · ONE SURVIVOR</footer>
+      <footer className="relative z-10 pb-4 text-center text-[11px] tracking-widest text-ivory/40">2–6 PLAYERS · PRIVATE ROOMS · ONE SURVIVOR</footer>
     </div>
   );
 }

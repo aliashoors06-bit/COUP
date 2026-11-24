@@ -16,7 +16,12 @@ const avatar = z.enum(AVATARS);
 export const CreateRoomSchema = z.object({ name, avatar });
 export const JoinRoomSchema = z.object({ name, avatar, code: roomCode });
 export const ResumeSchema = z.object({ code: roomCode, token: z.string().min(16).max(128) });
-export const PracticeSchema = z.object({ name, avatar, difficulty: z.enum(['easy', 'medium', 'hard']) });
+export const PracticeSchema = z.object({
+  name,
+  avatar,
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  bots: z.number().int().min(1).max(5).default(5),
+});
 export const ReadySchema = z.object({ ready: z.boolean() });
 export const AvatarSchema = z.object({ avatar });
 export const KickSchema = z.object({ playerId: z.string().min(1).max(64) });

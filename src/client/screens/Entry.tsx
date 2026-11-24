@@ -57,7 +57,7 @@ export function CreateRoomScreen() {
   return (
     <ScreenShell onBack={() => go('menu')}>
       <Panel className="p-6 sm:p-8">
-        <DecoHeading sub="Open a private court for six players.">Create Room</DecoHeading>
+        <DecoHeading sub="Open a private court for 2–6 players.">Create Room</DecoHeading>
         <form onSubmit={submit} className="mt-6 space-y-6">
           <NameField value={id.name} onChange={id.setName} />
           <div>
@@ -125,16 +125,17 @@ export function PracticeScreen() {
   const { go, startPractice, toast, busy, connected } = useStore();
   const id = useIdentity();
   const [diff, setDiff] = useState<Difficulty>('medium');
+  const [bots, setBots] = useState(5);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     id.persist();
-    const res = await startPractice(id.name, id.avatar, diff);
+    const res = await startPractice(id.name, id.avatar, diff, bots);
     if (!res.ok) toast(res.error ?? 'Could not start practice', 'error');
   };
   return (
     <ScreenShell onBack={() => go('menu')}>
       <Panel className="p-6 sm:p-8">
-        <DecoHeading sub="You against five computer-controlled courtiers. Same rules, no peeking.">Practice</DecoHeading>
+        <DecoHeading sub="You against 1–5 computer-controlled courtiers. Same rules, no peeking.">Practice</DecoHeading>
         <form onSubmit={submit} className="mt-6 space-y-6">
           <NameField value={id.name} onChange={id.setName} />
           <div>
@@ -158,6 +159,24 @@ export function PracticeScreen() {
                 <div className="mt-1 text-xs leading-snug text-ivory/70">{d.desc}</div>
               </button>
             ))}
+          </div>
+          <div>
+            <span className="mb-3 block text-xs uppercase tracking-[0.25em] text-champagne/80">Opponents</span>
+            <div role="radiogroup" aria-label="Number of bot opponents" className="grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={bots === n}
+                  aria-label={`${n} bot${n === 1 ? '' : 's'}`}
+                  onClick={() => setBots(n)}
+                  className={cls('rounded border py-2 font-deco text-xl transition', bots === n ? 'border-champagne bg-champagne/15 text-champagne' : 'border-white/10 bg-black/30 text-ivory/70 hover:border-champagne/40')}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
           <Button variant="gold" type="submit" className="w-full" disabled={!id.name.trim() || busy || !connected}>
             {connected ? 'Begin Practice' : 'Connecting…'}

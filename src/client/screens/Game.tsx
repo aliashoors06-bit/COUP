@@ -132,7 +132,11 @@ export function Game() {
   const isMyTurn = game.currentPlayerId === meId && pr?.kind === 'action';
   const lobbyOf = (id: string) => room?.players.find((p) => p.id === id);
   // Clockwise around an oval: r1 left, r2 top-left, r3 top, r4 top-right, r5 right.
-  const [r1, r2, r3, r4, r5] = ordered;
+  // With fewer opponents, use the positions that keep the table balanced.
+  const LAYOUT: Record<number, number[]> = { 1: [3], 2: [2, 4], 3: [2, 3, 4], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5] };
+  const pos: (PublicPlayer | undefined)[] = [];
+  (LAYOUT[ordered.length] ?? []).forEach((slot, i) => (pos[slot] = ordered[i]));
+  const [, r1, r2, r3, r4, r5] = pos;
 
   const seat = (p: PublicPlayer | undefined, align: string) =>
     p ? (

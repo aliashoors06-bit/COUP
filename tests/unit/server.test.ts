@@ -127,6 +127,27 @@ describe('lobby', () => {
     for (const c of [...clients, seventh]) c.s.close();
   });
 
+  it('starts with as few as two players and refuses one', async () => {
+    const host = await connect('Solo');
+    const r = await emit(host.s, 'room:create', { name: 'Solo', avatar: 'duke' });
+    expect(r.ok).toBe(true);
+    await emit(host.s, 'room:ready', { ready: true });
+    const alone = await emit(host.s, 'room:start');
+    expect(alone.ok).toBe(false);
+    expect(alone.error).toMatch(/at least 2/);
+    const guest = await connect('Guest');
+    expect((await emit(guest.s, 'room:join', { name: 'Guest', avatar: 'captain', code: r.code })).ok).toBe(true);
+    await emit(guest.s, 'room:ready', { ready: true });
+    await waitFor(() => host.room?.players.length === 2 && host.room.players.every((p) => p.ready));
+    expect((await emit(host.s, 'room:start')).ok).toBe(true);
+    await waitFor(() => !!host.game && !!guest.game);
+    expect(host.game!.state.players).toHaveLength(2);
+    expect(host.game!.state.deckCount).toBe(11);
+    expect(host.game!.state.treasury).toBe(46);
+    host.s.close();
+    guest.s.close();
+  });
+
   it('validates input with zod and rate-limits chat', async () => {
     const c = await connect('X');
     expect((await emit(c.s, 'room:create', { name: '', avatar: 'duke' })).ok).toBe(false);
@@ -148,6 +169,44 @@ describe('lobby', () => {
     expect(clients[1]!.room!.players.find((p) => p.id === oldHost)?.connected).toBe(false);
     for (const c of clients) c.s.close();
   });
+});
+
+describe('smaller tables', () => {
+  for (const n of [2, 3, 4]) {
+    it(`plays a complete ${n}-player match over the network`, async () => {
+      const host = await connect('H');
+      const r = await emit(host.s, 'room:create', { name: 'H', avatar: 'duke' });
+      Object.assign(host, { playerId: r.playerId, token: r.token, code: r.code });
+      const clients = [host];
+      for (let i = 1; i < n; i++) {
+        const c = await connect(`G${i}`);
+        const j = await emit(c.s, 'room:join', { name: `G${i}`, avatar: 'captain', code: r.code });
+        Object.assign(c, { playerId: j.playerId, token: j.token, code: j.code });
+        clients.push(c);
+      }
+      for (const c of clients) await emit(c.s, 'room:ready', { ready: true });
+      await waitFor(() => host.room?.players.length === n && host.room.players.every((p) => p.ready));
+      for (const c of clients) autoplay(c);
+      expect((await emit(host.s, 'room:start')).ok).toBe(true);
+      await waitFor(() => clients.every((c) => c.game?.state.phase === 'GAME_OVER'), 60_000);
+      expect(host.game!.state.players.filter((p) => !p.eliminated)).toHaveLength(1);
+      for (const c of clients) expect((await emit(c.s, 'game:rematch', { ready: true })).ok).toBe(true);
+      await waitFor(() => clients.every((c) => c.game?.state.phase !== 'GAME_OVER'));
+      for (const c of clients) c.s.close();
+    }, 70_000);
+  }
+
+  it('practice mode with a single bot opponent', async () => {
+    const c = await connect('Duo');
+    const r = await emit(c.s, 'practice:create', { name: 'Duo', avatar: 'duke', difficulty: 'easy', bots: 1 });
+    expect(r.ok).toBe(true);
+    c.playerId = r.playerId;
+    await waitFor(() => !!c.game);
+    expect(c.game!.state.players).toHaveLength(2);
+    autoplay(c);
+    await waitFor(() => c.game?.state.phase === 'GAME_OVER', 60_000);
+    c.s.close();
+  }, 70_000);
 });
 
 describe('six-player match over the network', () => {

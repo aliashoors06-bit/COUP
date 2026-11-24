@@ -1,6 +1,6 @@
 # COUP — Six-Player Online
 
-A real-time, browser-based adaptation of the social deduction card game **Coup**, for exactly six players on separate devices. It includes private rooms, a full rules engine, bluffing, challenges, blocks, reconnection, a practice mode against bots, and a retro-futuristic Art Deco presentation built from the supplied card and coin artwork.
+A real-time, browser-based adaptation of the social deduction card game **Coup**, for 2–6 players on separate devices. It includes private rooms, a full rules engine, bluffing, challenges, blocks, reconnection, a practice mode against bots, and a retro-futuristic Art Deco presentation built from the supplied card and coin artwork.
 
 ## Quick start
 
@@ -85,6 +85,8 @@ tests/e2e/              Playwright multiplayer suite
 
 ## Rules clarifications (deterministic digital rulings)
 
+0. **Table size:** 2–6 players. The host can start once at least two players are connected and ready. Practice mode takes 1–5 bots. The standard rules apply at every size; the deck always holds 15 cards (3 per character), so the Court Deck holds 15 − 2 × players.
+
 1. **Competing responses:** the server handles messages one at a time. The first valid challenge or block to arrive closes that window, and later responses to the same prompt are rejected. For Foreign Aid, the first Duke claim is the block.
 2. **Pass** declines only the current window. A window closes as soon as every eligible player has passed, and an expired timer counts as Pass.
 3. **Costs** (Coup 7, Assassinate 3) are paid to the treasury when declared. A successfully challenged Assassin claim refunds the 3 coins. A blocked assassination does not.
@@ -106,7 +108,7 @@ Bots see only what a human in their seat would see: public state, their own hand
 - **Medium:** card counting, a Bayesian estimate of each claim, steals from rich players who are unlikely to block, sharper targeting.
 - **Hard:** adds memory of every player's claims and exposed bluffs, suspicion of players claiming too many roles, threat-based targeting, and card valuation that adapts to visible cards.
 
-In simulations, hard beats easy (~68%), medium beats easy (~63%), and hard beats medium (~59%). A test guards this ordering.
+Practice mode lets you choose 1–5 bot opponents. In simulations, hard beats easy (~68%), medium beats easy (~63%), and hard beats medium (~59%). A test guards this ordering.
 
 ## Assets
 

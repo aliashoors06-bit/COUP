@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { DEFAULT_TIMERS, PLAYER_COUNT, TIMER_LIMITS, type TimerSettings } from '../../shared/constants';
+import { DEFAULT_TIMERS, MIN_PLAYERS, PLAYER_COUNT, TIMER_LIMITS, type TimerSettings } from '../../shared/constants';
 import type { RoomSettings } from '../../shared/types';
 import { ChatBox } from '../components/ChatPanel';
 import { Avatar, AvatarPicker, Button, Modal, Panel } from '../components/ui';
@@ -30,7 +30,7 @@ export function Lobby() {
   }
   const me = room.players.find((p) => p.id === session.playerId);
   const isHost = room.hostId === session.playerId;
-  const allReady = room.players.length === PLAYER_COUNT && room.players.every((p) => p.ready && p.connected);
+  const allReady = room.players.length >= MIN_PLAYERS && room.players.every((p) => p.ready && p.connected);
   const link = `${window.location.origin}/?room=${room.code}`;
 
   const copy = async (text: string, what: string) => {
@@ -78,7 +78,7 @@ export function Lobby() {
           <Panel className="p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-lg font-bold uppercase tracking-[0.25em] text-champagne">The Court</h2>
-              <div className={cls('font-deco text-2xl', room.players.length === PLAYER_COUNT ? 'text-champagne' : 'text-ivory/70')} aria-label={`${room.players.length} of 6 players`}>
+              <div className={cls('font-deco text-2xl', room.players.length >= MIN_PLAYERS ? 'text-champagne' : 'text-ivory/70')} aria-label={`${room.players.length} of ${PLAYER_COUNT} seats filled`}>
                 {room.players.length}/{PLAYER_COUNT}
               </div>
             </div>
@@ -137,16 +137,21 @@ export function Lobby() {
               {isHost && (
                 <>
                   <Button onClick={() => setSettingsOpen(true)}>Timers</Button>
-                  <Button variant="gold" disabled={!allReady} onClick={() => call('room:start')} title={allReady ? 'Start the match' : 'All six players must be connected and ready'}>
+                  <Button variant="gold" disabled={!allReady} onClick={() => call('room:start')} title={allReady ? 'Start the match' : `At least ${MIN_PLAYERS} players, all connected and ready`}>
                     Start Game
                   </Button>
                 </>
               )}
             </div>
+            {allReady && room.players.length < PLAYER_COUNT && (
+              <p className="mt-3 text-center text-xs text-ivory/50">
+                Ready to start with {room.players.length} players — or wait for up to {PLAYER_COUNT}.
+              </p>
+            )}
             {!allReady && (
               <p className="mt-3 text-center text-xs text-ivory/50">
-                {room.players.length < PLAYER_COUNT
-                  ? `Waiting for ${PLAYER_COUNT - room.players.length} more player${PLAYER_COUNT - room.players.length === 1 ? '' : 's'}. COUP needs exactly six.`
+                {room.players.length < MIN_PLAYERS
+                  ? `Waiting for at least ${MIN_PLAYERS - room.players.length} more player. COUP needs 2–6 players.`
                   : 'Waiting for everyone to be ready.'}
                 {!isHost && ' The host starts the match.'}
               </p>

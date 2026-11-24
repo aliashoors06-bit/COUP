@@ -4,7 +4,9 @@ export type Role = (typeof ROLES)[number];
 export const ACTIONS = ['income', 'foreign_aid', 'coup', 'tax', 'assassinate', 'steal', 'exchange'] as const;
 export type ActionType = (typeof ACTIONS)[number];
 
+/** Maximum seats at a table */
 export const PLAYER_COUNT = 6;
+export const MIN_PLAYERS = 2;
 export const CARDS_PER_ROLE = 3;
 export const TOTAL_CARDS = ROLES.length * CARDS_PER_ROLE; // 15
 export const TOTAL_COINS = 50;

@@ -118,7 +118,7 @@ export function HowToPlay({ embedded = false }: { embedded?: boolean }) {
   return (
     <ScreenShell onBack={() => go('menu')} wide>
       <Panel className="p-6 sm:p-10">
-        <DecoHeading sub="A game of deception for exactly six players.">How to Play</DecoHeading>
+        <DecoHeading sub="A game of deception for 2–6 players.">How to Play</DecoHeading>
         <div className="mt-8">{body}</div>
       </Panel>
     </ScreenShell>

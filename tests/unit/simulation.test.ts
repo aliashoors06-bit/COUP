@@ -6,14 +6,14 @@ import { ACTIONS, ROLES, type Difficulty } from '../../src/shared/constants.js';
 import type { GameCommand } from '../../src/shared/types.js';
 import { checkConservation, IDS } from './helpers.js';
 
-function playBotGame(seed: number, difficulties: Difficulty[]) {
+function playBotGame(seed: number, difficulties: Difficulty[], ids: readonly string[] = IDS) {
   let t = 0;
   const e = new CoupEngine({
-    players: IDS.map((id) => ({ id, name: id, avatar: 'duke' as const, isBot: true })),
+    players: ids.map((id) => ({ id, name: id, avatar: 'duke' as const, isBot: true })),
     rng: seededRng(seed),
     now: () => t,
   });
-  const bots = IDS.map((id, i) => new BotBrain(id, difficulties[i % difficulties.length]!, seed * 31 + i));
+  const bots = ids.map((id, i) => new BotBrain(id, difficulties[i % difficulties.length]!, seed * 31 + i));
   let n = 0;
   let steps = 0;
   while (e.phase !== 'GAME_OVER' && steps++ < 5000) {
@@ -53,6 +53,19 @@ describe('full six-player bot matches through the engine', () => {
         // Losers keep both revealed cards on the table.
         for (const p of e.players.filter((x) => x.eliminated)) expect(p.hand.every((h) => h.revealed)).toBe(true);
         for (const p of e.players.filter((x) => x.eliminated)) expect(p.coins).toBe(0);
+        checkConservation(e);
+      }
+    });
+  }
+
+  for (const n of [2, 3, 4, 5]) {
+    it(`completes 40 ${n}-player matches`, () => {
+      for (let seed = 1; seed <= 40; seed++) {
+        const e = playBotGame(500 + seed, ['medium', 'hard'], IDS.slice(0, n));
+        expect(e.phase).toBe('GAME_OVER');
+        expect(e.players).toHaveLength(n);
+        expect(e.players.filter((p) => !p.eliminated)).toHaveLength(1);
+        expect(e.deck.length).toBe(15 - 2 * n);
         checkConservation(e);
       }
     });
